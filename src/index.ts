@@ -166,7 +166,7 @@ export class MarkovChain {
         while(out.length < maxLength) {
             let data = await this.queryDB(chain);
 
-            if(!data) {
+            if(!data || !data.message) {
                 break;
             }
 

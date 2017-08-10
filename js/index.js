@@ -139,7 +139,7 @@ class MarkovChain {
             let lastChain;
             while (out.length < maxLength) {
                 let data = yield this.queryDB(chain);
-                if (!data) {
+                if (!data || !data.message) {
                     break;
                 }
                 words = this.getWords(data.message);
