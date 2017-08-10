@@ -57,7 +57,7 @@ class MarkovChain {
         let out = [];
         for (let i = 0; i < depth; i++) {
             if (words[words.length - 1 - i]) {
-                out.push(words[words.length - 1 - i]);
+                out.push(words[words.length - depth - i]);
             }
             else {
                 break;
