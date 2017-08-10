@@ -66,8 +66,8 @@ export class MarkovChain {
         let out: string[] = [];
 
         for(let i=0;i < depth;i++) {
-            if(words[words.length - 1 - i]) {
-                out.push(words[words.length - depth - i]);
+            if(words[words.length - depth + i]) {
+                out.push(words[words.length - depth + i]);
             }
             else {
                 break;

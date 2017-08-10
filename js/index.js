@@ -56,8 +56,8 @@ class MarkovChain {
     getCurrentChain(words, depth = 2) {
         let out = [];
         for (let i = 0; i < depth; i++) {
-            if (words[words.length - 1 - i]) {
-                out.push(words[words.length - depth - i]);
+            if (words[words.length - depth + i]) {
+                out.push(words[words.length - depth + i]);
             }
             else {
                 break;
