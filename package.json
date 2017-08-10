@@ -1,5 +1,5 @@
 {
-  "name": "node-markov-lite",
+  "name": "markov-lite",
   "version": "1.0.0",
   "description": "modified lightweight markov chain sentence builder",
   "main": "js/index.js",
