@@ -128,7 +128,7 @@ class MarkovChain {
             }
         });
     }
-    generate(depth = 2, sentence = "") {
+    generate(depth = 2, maxLength = 50, sentence = "") {
         return __awaiter(this, void 0, void 0, function* () {
             let words = this.getWords(sentence);
             let chain = this.getCurrentChain(words, depth);
@@ -137,7 +137,7 @@ class MarkovChain {
                 out.push(word);
             }
             let lastChain;
-            while (true) {
+            while (out.length < maxLength) {
                 let data = yield this.queryDB(chain);
                 if (!data) {
                     break;

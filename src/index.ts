@@ -151,7 +151,7 @@ export class MarkovChain {
         });
     }
 
-    async generate(depth: number = 2,sentence:string = "") {
+    async generate(depth: number = 2,maxLength: number = 50,sentence:string = "") {
         let words = this.getWords(sentence);
         let chain = this.getCurrentChain(words,depth);
 
@@ -163,7 +163,7 @@ export class MarkovChain {
 
         let lastChain;
 
-        while(true) {
+        while(out.length < maxLength) {
             let data = await this.queryDB(chain);
 
             if(!data) {
