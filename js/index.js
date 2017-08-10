@@ -20,9 +20,9 @@ class MarkovChain {
         let query = [];
         query.push("SELECT * FROM markov WHERE (");
         query.push("message LIKE $sentence1 ");
-        query.push("OR [message] Like $sentence2 ");
+        // query.push("OR [message] Like $sentence2 ");
         query.push("OR [message] Like $sentence3 ");
-        query.push("OR [message] = $sentence4");
+        // query.push("OR [message] = $sentence4");
         query.push(") ORDER BY RANDOM() LIMIT 1");
         this.baseQuery = query.join("\n");
     }
@@ -80,8 +80,8 @@ class MarkovChain {
                 }
                 if (acceptable) {
                     if (chain.length < depth) {
-                        for (let i2 = 0; i2 < depth; i2++) {
-                            out.push(words[i2 + i]);
+                        for (let i2 = i; i2 < Math.min(i + depth, words.length); i2++) {
+                            out.push(words[i2]);
                         }
                     }
                     else {
@@ -114,9 +114,8 @@ class MarkovChain {
             else {
                 this.db.get(this.baseQuery, {
                     $sentence1: `% ${sentence} %`,
-                    $sentence2: `% ${sentence}`,
+                    // $sentence2: `% ${sentence}`,
                     $sentence3: `${sentence} %`,
-                    $sentence4: `${sentence}`,
                 }, (err, res) => {
                     if (err) {
                         reject(err);
@@ -145,12 +144,12 @@ class MarkovChain {
                 words = this.getWords(data.message);
                 lastChain = chain;
                 chain = this.matchCurrentChain(words, chain, depth);
-                if (chain.length < depth) {
+                if (((chain.length - lastChain.length) <= 0) && (chain.length < depth)) {
                     break;
                 }
                 else if (lastChain.length < depth) {
-                    for (let word of chain) {
-                        out.push(word);
+                    for (let i = lastChain.length; i < chain.length; i++) {
+                        out.push(chain[i]);
                     }
                 }
                 else {
