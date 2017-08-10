@@ -65,11 +65,9 @@ export class MarkovChain {
     private getCurrentChain(words: string[],depth: number = 2) {
         let out: string[] = [];
 
-        for(let i=words.length-1;i >= 0;i--) {
-            if(depth > 0) {
-                depth = depth - 1;
-
-                out.push(words[i]);
+        for(let i=0;i < depth;i++) {
+            if(words[words.length - 1 - i]) {
+                out.push(words[words.length - 1 - i]);
             }
             else {
                 break;
