@@ -25,7 +25,7 @@ export class MarkovChain {
         // query.push("OR [message] Like $sentence2 ");
         query.push("OR [message] Like $sentence3 ");
         // query.push("OR [message] = $sentence4");
-        query.push(") ORDER BY RANDOM() LIMIT 1");
+        query.push(") ORDER BY RANDOM() LIMIT 5");
 
         this.baseQuery = query.join("\n");
     }
@@ -68,9 +68,6 @@ export class MarkovChain {
         for(let i=0;i < depth;i++) {
             if(words[words.length - depth + i]) {
                 out.push(words[words.length - depth + i]);
-            }
-            else {
-                break;
             }
         }
 
@@ -132,17 +129,24 @@ export class MarkovChain {
                 });
             }
             else {
-                this.db.get(this.baseQuery,{
-                    $sentence1: `% ${sentence} %`,
+                this.db.all(this.baseQuery,{
+                    $sentence1: `_% ${sentence} %_`,
                     // $sentence2: `% ${sentence}`,
-                    $sentence3: `${sentence} %`,
+                    $sentence3: `${sentence} %_`,
                     // $sentence4: `${sentence}`,
-                },(err,res) => {
+                },(err,resArr:ILearnData[]) => {
                     if(err) {
                         reject(err);
                     }
                     else {
-                        resolve(res);
+                        for(let res of resArr) {
+                            if(!res.message.endsWith(sentence)) {
+                                resolve(res);
+                                return;
+                            }
+                        }
+
+                        resolve(null);
                     }
                 });
             }
@@ -152,7 +156,7 @@ export class MarkovChain {
     async generate(depth: number = 2,maxLength: number = 50,sentence:string = "") {
         let words = this.getWords(sentence);
         let chain = this.getCurrentChain(words,depth);
-
+        
         let out:string[] = [];
 
         for(let word of words) {
