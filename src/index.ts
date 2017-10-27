@@ -114,7 +114,7 @@ export class MarkovChain {
             }
         }
 
-        return chains[Math.round(Math.random() * (chains.length - 1))];
+        return chains[Math.round(Math.random() * (chains.length - 1))] || out;
     }
 
     queryDB(chain: string[]):Promise<ILearnData> {
