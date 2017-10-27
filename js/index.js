@@ -64,6 +64,7 @@ class MarkovChain {
     }
     matchCurrentChain(words, chain, depth = 2) {
         let out = [];
+        let chains = [];
         for (let i = 0; i < words.length; i++) {
             let word = words[i];
             if ((word == chain[0]) || !chain[0]) {
@@ -88,11 +89,13 @@ class MarkovChain {
                             out.push(words[i + chain.length]);
                         }
                     }
-                    break;
+                    chains.push(out);
+                    out = [];
+                    acceptable = false;
                 }
             }
         }
-        return out;
+        return chains[Math.round(Math.random() * (chains.length - 1))];
     }
     queryDB(chain) {
         return new Promise((resolve, reject) => {

@@ -76,6 +76,7 @@ export class MarkovChain {
 
     private matchCurrentChain(words: string[],chain: string[],depth: number = 2) {
         let out: string[] = [];
+        let chains: string[][] = [];
 
         for(let i=0;i < words.length;i++) {
             let word = words[i];
@@ -106,12 +107,14 @@ export class MarkovChain {
                         }
                     }
 
-                    break;
+                    chains.push(out);
+                    out = [];
+                    acceptable = false;
                 }
             }
         }
 
-        return out;
+        return chains[Math.round(Math.random() * (chains.length - 1))];
     }
 
     queryDB(chain: string[]):Promise<ILearnData> {
