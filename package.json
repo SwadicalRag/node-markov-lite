@@ -1,6 +1,6 @@
 {
   "name": "markov-lite",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "modified lightweight markov chain sentence builder",
   "main": "js/index.js",
   "scripts": {
