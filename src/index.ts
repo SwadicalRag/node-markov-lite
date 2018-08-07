@@ -81,7 +81,7 @@ export class MarkovChain {
         for(let i=0;i < words.length;i++) {
             let word = words[i].toLocaleLowerCase();
 
-            if((word == chain[0].toLocaleLowerCase()) || !chain[0]) {
+            if(!chain[0] || (word == chain[0].toLocaleLowerCase())) {
                 let acceptable = true;
 
                 for(let i2=0;i2 < chain.length;i2++) {

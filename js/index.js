@@ -67,7 +67,7 @@ class MarkovChain {
         let chains = [];
         for (let i = 0; i < words.length; i++) {
             let word = words[i].toLocaleLowerCase();
-            if ((word == chain[0].toLocaleLowerCase()) || !chain[0]) {
+            if (!chain[0] || (word == chain[0].toLocaleLowerCase())) {
                 let acceptable = true;
                 for (let i2 = 0; i2 < chain.length; i2++) {
                     if (chain[i2].toLocaleLowerCase() != words[i + i2].toLocaleLowerCase()) {
@@ -175,4 +175,8 @@ class MarkovChain {
     }
 }
 exports.MarkovChain = MarkovChain;
+let test = new MarkovChain("database.sqlite");
+setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+    console.log(yield test.generate(2, 20));
+}), 1500);
 //# sourceMappingURL=index.js.map
