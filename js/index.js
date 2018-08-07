@@ -132,13 +132,16 @@ class MarkovChain {
             }
         });
     }
-    generate(depth = 2, maxLength = 50, sentence = "") {
+    generate(depth = 2, maxLength = 50, sentence = "", callback) {
         return __awaiter(this, void 0, void 0, function* () {
             let words = this.getWords(sentence);
             let chain = this.getCurrentChain(words, depth);
             let out = [];
             for (let word of words) {
                 out.push(word);
+                if (callback) {
+                    callback(word);
+                }
             }
             let lastChain;
             while (out.length < maxLength) {
@@ -155,10 +158,16 @@ class MarkovChain {
                 else if (lastChain.length < depth) {
                     for (let i = lastChain.length; i < chain.length; i++) {
                         out.push(chain[i]);
+                        if (callback) {
+                            callback(chain[i]);
+                        }
                     }
                 }
                 else {
                     out.push(chain[chain.length - 1]);
+                    if (callback) {
+                        callback(chain[chain.length - 1]);
+                    }
                 }
             }
             return out.join(" ");

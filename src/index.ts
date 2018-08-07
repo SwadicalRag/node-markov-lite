@@ -156,7 +156,7 @@ export class MarkovChain {
         });
     }
 
-    async generate(depth: number = 2,maxLength: number = 50,sentence:string = "") {
+    async generate(depth: number = 2,maxLength: number = 50,sentence:string = "",callback?: (word: string) => void) {
         let words = this.getWords(sentence);
         let chain = this.getCurrentChain(words,depth);
         
@@ -164,6 +164,9 @@ export class MarkovChain {
 
         for(let word of words) {
             out.push(word);
+            if(callback) {
+                callback(word);
+            }
         }
 
         let lastChain;
@@ -186,10 +189,16 @@ export class MarkovChain {
             else if(lastChain.length < depth) {
                 for(let i=lastChain.length;i < chain.length;i++) {
                     out.push(chain[i]);
+                    if(callback) {
+                        callback(chain[i]);
+                    }
                 }
             }
             else {
                 out.push(chain[chain.length - 1]);
+                if(callback) {
+                    callback(chain[chain.length - 1]);
+                }
             }
         }
 
