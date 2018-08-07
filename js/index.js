@@ -23,7 +23,7 @@ class MarkovChain {
         // query.push("OR [message] Like $sentence2 ");
         query.push("OR [message] Like $sentence3 ");
         // query.push("OR [message] = $sentence4");
-        query.push(") ORDER BY RANDOM() LIMIT 5");
+        query.push(") ORDER BY RANDOM() LIMIT 1");
         this.baseQuery = query.join("\n");
     }
     ready() {
@@ -66,11 +66,11 @@ class MarkovChain {
         let out = [];
         let chains = [];
         for (let i = 0; i < words.length; i++) {
-            let word = words[i];
-            if ((word == chain[0]) || !chain[0]) {
+            let word = words[i].toLocaleLowerCase();
+            if ((word == chain[0].toLocaleLowerCase()) || !chain[0]) {
                 let acceptable = true;
                 for (let i2 = 0; i2 < chain.length; i2++) {
-                    if (chain[i2] != words[i + i2]) {
+                    if (chain[i2].toLocaleLowerCase() != words[i + i2].toLocaleLowerCase()) {
                         acceptable = false;
                         break;
                     }
