@@ -175,8 +175,4 @@ class MarkovChain {
     }
 }
 exports.MarkovChain = MarkovChain;
-let test = new MarkovChain("database.sqlite");
-setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-    console.log(yield test.generate(2, 20));
-}), 1500);
 //# sourceMappingURL=index.js.map
