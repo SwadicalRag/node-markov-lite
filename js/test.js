@@ -9,8 +9,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const _1 = require("./");
-let test = new _1.MarkovChain("./database.sqlite");
+let mark = new _1.MarkovChainPostgres({
+    database: "markov",
+    host: "localhost",
+    password: "password",
+    port: 5432,
+    user: "postgres",
+});
 setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-    console.log(yield test.generate(2));
-}), 1500);
+    yield mark.learn({
+        authorID: "ID",
+        authorName: "swad",
+        message: "i love green fruits"
+    });
+    yield mark.learn({
+        authorID: "ID",
+        authorName: "swad",
+        message: "i love red fruits"
+    });
+    yield mark.learn({
+        authorID: "ID",
+        authorName: "swad",
+        message: "i love red bananas"
+    });
+    yield mark.learn({
+        authorID: "ID",
+        authorName: "swad",
+        message: "green fruits are great"
+    });
+    yield mark.learn({
+        authorID: "ID",
+        authorName: "swad",
+        message: "fruits are horrible"
+    });
+    console.log("Learnt!");
+    for (let i = 0; i < 5; i++) {
+        console.log(yield mark.generate(2, 50, "i"));
+    }
+}), 1000);
 //# sourceMappingURL=test.js.map

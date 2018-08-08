@@ -1,4 +1,5 @@
 import * as sqlite from "sqlite3";
+import {Pool as PGSQLPool} from "pg";
 
 export interface ILearnData {
     timestamp?: Date;
@@ -199,6 +200,99 @@ export class MarkovChain extends MarkovChainBase {
                     }
                     else {
                         for(let res of resArr) {
+                            if(!res.message.endsWith(sentence)) {
+                                resolve(res);
+                                return;
+                            }
+                        }
+
+                        resolve(null);
+                    }
+                });
+            }
+        });
+    }
+}
+
+export class MarkovChainPostgres extends MarkovChainBase {
+    pool: any;
+    baseQuery: string;
+
+    constructor(public dbOpts: {
+        user: string,
+        host: string,
+        database: string,
+        password: string,
+        port: number,
+    }) {
+        super();
+
+        this.pool = new PGSQLPool(dbOpts);
+
+        let query = [];
+
+        query.push("SELECT * FROM markov WHERE (");
+        query.push("    message LIKE $1 ");
+        query.push("    OR message LIKE $2 ");
+        query.push(") ORDER BY RANDOM() LIMIT 1");
+
+        this.baseQuery = query.join("\n");
+
+        this.ready();
+    }
+
+    ready() {
+        this.pool.query("CREATE TABLE IF NOT EXISTS markov (timestamp TIMESTAMP, authorID VARCHAR(255), authorName VARCHAR(255), message VARCHAR(255));",(err,res) => {
+            if(err) {
+                console.error(err);
+            }
+        });
+    }
+
+    learn(data: ILearnData) {
+        return new Promise<void>((resolve,reject) => {
+            data.message = data.message.trim().replace(/\s+/g," "); // standardise whitespace
+
+            this.pool.query("INSERT INTO markov VALUES (to_timestamp($1), $2, $3, $4)", [
+                data.timestamp ? data.timestamp.getTime() : Date.now(),
+                data.authorName,
+                data.authorID,
+                data.message,
+            ],(err) => {
+                if(err) {
+                    reject(err);
+                }
+                else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    queryDB(chain: string[]):Promise<ILearnData> {
+        return new Promise((resolve,reject) => {
+            let sentence = chain.join(" ");
+
+            if(sentence.trim() == "") {
+                this.pool.query("SELECT * FROM markov ORDER BY random() LIMIT 1",(err,res) => {
+                    if(err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(res.rows[0]);
+                    }
+                });
+            }
+            else {
+                this.pool.query(this.baseQuery,[
+                    `_% ${sentence} %_`,
+                    `${sentence} %_`,
+                ],(err,resArr) => {
+                    if(err) {
+                        reject(err);
+                    }
+                    else {
+                        for(let res of resArr.rows) {
                             if(!res.message.endsWith(sentence)) {
                                 resolve(res);
                                 return;

@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sqlite = require("sqlite3");
+const pg_1 = require("pg");
 ;
 class MarkovChainBase {
     getWords(sentence) {
@@ -179,4 +180,78 @@ class MarkovChain extends MarkovChainBase {
     }
 }
 exports.MarkovChain = MarkovChain;
+class MarkovChainPostgres extends MarkovChainBase {
+    constructor(dbOpts) {
+        super();
+        this.dbOpts = dbOpts;
+        this.pool = new pg_1.Pool(dbOpts);
+        let query = [];
+        query.push("SELECT * FROM markov WHERE (");
+        query.push("    message LIKE $1 ");
+        query.push("    OR message LIKE $2 ");
+        query.push(") ORDER BY RANDOM() LIMIT 1");
+        this.baseQuery = query.join("\n");
+        this.ready();
+    }
+    ready() {
+        this.pool.query("CREATE TABLE IF NOT EXISTS markov (timestamp TIMESTAMP, authorID VARCHAR(255), authorName VARCHAR(255), message VARCHAR(255));", (err, res) => {
+            if (err) {
+                console.error(err);
+            }
+        });
+    }
+    learn(data) {
+        return new Promise((resolve, reject) => {
+            data.message = data.message.trim().replace(/\s+/g, " "); // standardise whitespace
+            this.pool.query("INSERT INTO markov VALUES (to_timestamp($1), $2, $3, $4)", [
+                data.timestamp ? data.timestamp.getTime() : Date.now(),
+                data.authorName,
+                data.authorID,
+                data.message,
+            ], (err) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve();
+                }
+            });
+        });
+    }
+    queryDB(chain) {
+        return new Promise((resolve, reject) => {
+            let sentence = chain.join(" ");
+            if (sentence.trim() == "") {
+                this.pool.query("SELECT * FROM markov ORDER BY random() LIMIT 1", (err, res) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(res.rows[0]);
+                    }
+                });
+            }
+            else {
+                this.pool.query(this.baseQuery, [
+                    `_% ${sentence} %_`,
+                    `${sentence} %_`,
+                ], (err, resArr) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        for (let res of resArr.rows) {
+                            if (!res.message.endsWith(sentence)) {
+                                resolve(res);
+                                return;
+                            }
+                        }
+                        resolve(null);
+                    }
+                });
+            }
+        });
+    }
+}
+exports.MarkovChainPostgres = MarkovChainPostgres;
 //# sourceMappingURL=index.js.map
