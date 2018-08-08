@@ -187,8 +187,8 @@ class MarkovChainPostgres extends MarkovChainBase {
         this.pool = new pg_1.Pool(dbOpts);
         let query = [];
         query.push("SELECT * FROM markov WHERE (");
-        query.push("    message LIKE $1 ");
-        query.push("    OR message LIKE $2 ");
+        query.push("    message ILIKE $1 ");
+        query.push("    OR message ILIKE $2 ");
         query.push(") ORDER BY RANDOM() LIMIT 1");
         this.baseQuery = query.join("\n");
         this.ready();
