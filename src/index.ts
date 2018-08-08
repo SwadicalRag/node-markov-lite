@@ -7,52 +7,9 @@ export interface ILearnData {
     authorName: string;
 };
 
-export class MarkovChain {
-    db: sqlite.Database;
-    baseQuery: string;
-
-    constructor(public location:string) {
-        this.db = new sqlite.Database(this.location);
-
-        this.db.serialize(() => {
-            this.ready();
-        });
-
-        let query = [];
-
-        query.push("SELECT * FROM markov WHERE (");
-        query.push("message LIKE $sentence1 ");
-        // query.push("OR [message] Like $sentence2 ");
-        query.push("OR [message] Like $sentence3 ");
-        // query.push("OR [message] = $sentence4");
-        query.push(") ORDER BY RANDOM() LIMIT 1");
-
-        this.baseQuery = query.join("\n");
-    }
-
-    ready() {
-        this.db.run("CREATE TABLE IF NOT EXISTS markov (`timestamp` DATETIME, `authorID` VARCHAR(255), `authorName` VARCHAR(255), `message` VARCHAR(255));");
-    }
-
-    learn(data: ILearnData) {
-        return new Promise((resolve,reject) => {
-            data.message = data.message.trim().replace(/\s+/g," "); // standardise whitespace
-
-            this.db.run("INSERT INTO markov VALUES ($timestamp, $authorID, $authorName, $message)", {
-                $timestamp: data.timestamp ? data.timestamp.getTime() : Date.now(),
-                $authorID: data.authorName,
-                $authorName: data.authorID,
-                $message: data.message,
-            },(err) => {
-                if(err) {
-                    reject(err);
-                }
-                else {
-                    resolve();
-                }
-            });
-        });
-    }
+export abstract class MarkovChainBase {
+    abstract learn(data: ILearnData):Promise<void>;
+    abstract queryDB(chain: string[]):Promise<ILearnData>;
 
     private getWords(sentence: string) {
         if(sentence.match(/^\s*$/)) {
@@ -117,45 +74,6 @@ export class MarkovChain {
         return chains[Math.round(Math.random() * (chains.length - 1))] || out;
     }
 
-    queryDB(chain: string[]):Promise<ILearnData> {
-        return new Promise((resolve,reject) => {
-            let sentence = chain.join(" ");
-
-            if(sentence.trim() == "") {
-                this.db.get("SELECT * FROM markov ORDER BY RANDOM() LIMIT 1",(err,res) => {
-                    if(err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve(res);
-                    }
-                });
-            }
-            else {
-                this.db.all(this.baseQuery,{
-                    $sentence1: `_% ${sentence} %_`,
-                    // $sentence2: `% ${sentence}`,
-                    $sentence3: `${sentence} %_`,
-                    // $sentence4: `${sentence}`,
-                },(err,resArr:ILearnData[]) => {
-                    if(err) {
-                        reject(err);
-                    }
-                    else {
-                        for(let res of resArr) {
-                            if(!res.message.endsWith(sentence)) {
-                                resolve(res);
-                                return;
-                            }
-                        }
-
-                        resolve(null);
-                    }
-                });
-            }
-        });
-    }
-
     async generate(depth: number = 2,maxLength: number = 50,sentence:string = "",callback?: (word: string) => void) {
         let words = this.getWords(sentence);
         let chain = this.getCurrentChain(words,depth);
@@ -203,5 +121,94 @@ export class MarkovChain {
         }
 
         return out.join(" ");
+    }
+}
+
+export class MarkovChain extends MarkovChainBase {
+    db: sqlite.Database;
+    baseQuery: string;
+
+    constructor(public location:string) {
+        super();
+
+        this.db = new sqlite.Database(this.location);
+
+        this.db.serialize(() => {
+            this.ready();
+        });
+
+        let query = [];
+
+        query.push("SELECT * FROM markov WHERE (");
+        query.push("message LIKE $sentence1 ");
+        // query.push("OR [message] Like $sentence2 ");
+        query.push("OR [message] Like $sentence3 ");
+        // query.push("OR [message] = $sentence4");
+        query.push(") ORDER BY RANDOM() LIMIT 1");
+
+        this.baseQuery = query.join("\n");
+    }
+
+    ready() {
+        this.db.run("CREATE TABLE IF NOT EXISTS markov (`timestamp` DATETIME, `authorID` VARCHAR(255), `authorName` VARCHAR(255), `message` VARCHAR(255));");
+    }
+
+    learn(data: ILearnData) {
+        return new Promise<void>((resolve,reject) => {
+            data.message = data.message.trim().replace(/\s+/g," "); // standardise whitespace
+
+            this.db.run("INSERT INTO markov VALUES ($timestamp, $authorID, $authorName, $message)", {
+                $timestamp: data.timestamp ? data.timestamp.getTime() : Date.now(),
+                $authorID: data.authorName,
+                $authorName: data.authorID,
+                $message: data.message,
+            },(err) => {
+                if(err) {
+                    reject(err);
+                }
+                else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    queryDB(chain: string[]):Promise<ILearnData> {
+        return new Promise((resolve,reject) => {
+            let sentence = chain.join(" ");
+
+            if(sentence.trim() == "") {
+                this.db.get("SELECT * FROM markov ORDER BY RANDOM() LIMIT 1",(err,res) => {
+                    if(err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(res);
+                    }
+                });
+            }
+            else {
+                this.db.all(this.baseQuery,{
+                    $sentence1: `_% ${sentence} %_`,
+                    // $sentence2: `% ${sentence}`,
+                    $sentence3: `${sentence} %_`,
+                    // $sentence4: `${sentence}`,
+                },(err,resArr:ILearnData[]) => {
+                    if(err) {
+                        reject(err);
+                    }
+                    else {
+                        for(let res of resArr) {
+                            if(!res.message.endsWith(sentence)) {
+                                resolve(res);
+                                return;
+                            }
+                        }
+
+                        resolve(null);
+                    }
+                });
+            }
+        });
     }
 }
