@@ -8,16 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}/js/index.js"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "program": "${file}",
-            "outFiles": [
-                "${workspaceRoot}/js/**/*.js"
-            ]
+            "program": "${workspaceRoot}/js/test.js"
         }
     ]
 }
