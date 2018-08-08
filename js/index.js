@@ -70,7 +70,7 @@ class MarkovChain {
             if (!chain[0] || (word == chain[0].toLocaleLowerCase())) {
                 let acceptable = true;
                 for (let i2 = 0; i2 < chain.length; i2++) {
-                    if (chain[i2].toLocaleLowerCase() != words[i + i2].toLocaleLowerCase()) {
+                    if (!words[i + i2] || (chain[i2].toLocaleLowerCase() != words[i + i2].toLocaleLowerCase())) {
                         acceptable = false;
                         break;
                     }
