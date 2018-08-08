@@ -129,7 +129,7 @@ class MarkovChain extends MarkovChainBase {
         return new Promise((resolve, reject) => {
             data.message = data.message.trim().replace(/\s+/g, " "); // standardise whitespace
             this.db.run("INSERT INTO markov VALUES ($timestamp, $authorID, $authorName, $message)", {
-                $timestamp: data.timestamp ? data.timestamp.getTime() : Date.now(),
+                $timestamp: Math.round((data.timestamp || Date.now()) / 1000),
                 $authorID: data.authorName,
                 $authorName: data.authorID,
                 $message: data.message,
@@ -193,8 +193,34 @@ class MarkovChainPostgres extends MarkovChainBase {
         this.baseQuery = query.join("\n");
         this.ready();
     }
+    migrateFromSQLite(path) {
+        let db = new sqlite.Database(path);
+        db.serialize(() => {
+            let i = 0;
+            let j = 0;
+            db.each("SELECT * FROM markov", (err, row) => {
+                if (!err) {
+                    j++;
+                    this.learn({
+                        timestamp: row.timestamp,
+                        authorID: row.authorID,
+                        authorName: row.authorName,
+                        message: row.message,
+                    }).then(() => {
+                        i++;
+                        if ((i % 500) == 0) {
+                            console.log("migrated " + i + " entries...");
+                        }
+                    });
+                    if ((j % 500) == 0) {
+                        console.log("requested " + j + " entries...");
+                    }
+                }
+            });
+        });
+    }
     ready() {
-        this.pool.query("CREATE TABLE IF NOT EXISTS markov (timestamp TIMESTAMP, authorID VARCHAR(255), authorName VARCHAR(255), message VARCHAR(255));", (err, res) => {
+        this.pool.query("CREATE TABLE IF NOT EXISTS markov (timestamp TIMESTAMP, authorID VARCHAR(255), authorName VARCHAR(255), message TEXT);", (err, res) => {
             if (err) {
                 console.error(err);
             }
@@ -204,7 +230,7 @@ class MarkovChainPostgres extends MarkovChainBase {
         return new Promise((resolve, reject) => {
             data.message = data.message.trim().replace(/\s+/g, " "); // standardise whitespace
             this.pool.query("INSERT INTO markov VALUES (to_timestamp($1), $2, $3, $4)", [
-                data.timestamp ? data.timestamp.getTime() : Date.now(),
+                Math.round((data.timestamp || Date.now()) / 1000),
                 data.authorName,
                 data.authorID,
                 data.message,
