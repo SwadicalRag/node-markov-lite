@@ -1,6 +1,6 @@
 {
   "name": "markov-lite",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "modified lightweight markov chain sentence builder",
   "main": "js/index.js",
   "scripts": {
@@ -18,9 +18,9 @@
   "homepage": "https://github.com/SwadicalRag/node-markov-lite#readme",
   "dependencies": {
     "@types/node": "^8.0.20",
-    "@types/sqlite3": "^3.1.0",
+    "@types/sqlite3": "^3.1.5",
     "pg": "^7.4.3",
-    "sqlite3": "^3.1.9"
+    "sqlite3": "^4.0.9"
   },
   "devDependencies": {
     "typescript": "^3.0.1"
